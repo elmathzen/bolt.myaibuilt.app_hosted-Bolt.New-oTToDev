@@ -1,0 +1,18 @@
+async function chatAction({ context, request }: ActionFunctionArgs) {
+  const { messages, model, provider } = await request.json<{
+    messages: Messages;
+    model: string;
+    provider: string;
+  }>();
+
+  const cookieHeader = request.headers.get('Cookie');
+  const apiKeys = JSON.parse(parseCookies(cookieHeader).apiKeys || '{}');
+
+  if (provider === 'AbacusAI') {
+    const stream = await abacusaiStream(messages, {
+      model,
+      temperature: 0.7,
+      apiKey: apiKeys.AbacusAI || '',
+    });
+    return new Response(stream);
+  }
